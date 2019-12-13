@@ -1,5 +1,9 @@
 -- | Definition of various kinds of omega automata
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE StandaloneDeriving #-}
+
 module OmegaAutomata.Automata where
+
 import qualified Data.Set as S
 import Data.Graph.Inductive
 import qualified Data.Map as M
@@ -21,7 +25,11 @@ data NBA q a l = NBA{ states :: S.Set q       -- ^ The states of the NBA
                     } deriving (Show)
 
 -- | State-data type used in the complement-construction
-data (Ord q) => CompState q = PowerState [q] | RankState (Ranking q, [q]) deriving Show
+data CompState q where
+    PowerState :: Ord q => [q] -> CompState q
+    RankState :: Ord q => (Ranking q, [q]) -> CompState q
+
+deriving instance Show q => Show (CompState q)
 
 instance (Ord q) => Eq (CompState q) where
   (==) (PowerState qs1) (PowerState qs2) = qs1 == qs2
@@ -354,3 +362,4 @@ closure ((ss, ts), qs') f = case qs' of
                in
                 closure ((newSS, ts ++ newTrans), newQs) f
   []    -> ((ss, ts), qs')
+

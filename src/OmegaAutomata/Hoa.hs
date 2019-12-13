@@ -14,6 +14,7 @@ module OmegaAutomata.Hoa ( AliasName
                          , toHoa
                          , nbaToHoa
                          , hoaToNBA) where
+
 import qualified OmegaAutomata.Automata as A
 import qualified Data.Text as T
 import Data.Attoparsec.Text
@@ -114,11 +115,11 @@ instance MBoolExpr HoaAccCond where
 parseHoa :: Parser ([HeaderItem], [BodyItem])
 parseHoa = do
   parseAttribute "HOA"
-  string "v1"
+  _ <- string "v1"
   (hs, (i, as)) <- runStateT (many parseHeaderItem) (0, [])
-  skipNonToken $ string "--BODY--"
+  _ <- skipNonToken $ string "--BODY--"
   bs <- many $ parseBodyItem i as
-  skipNonToken $ string "--END--"
+  _ <- skipNonToken $ string "--END--"
   return (hs, bs)
 
 
@@ -183,8 +184,8 @@ parseAccSig = curls $ parseSpaceSeparated decimal
 
 parseAttribute :: T.Text -> Parser ()
 parseAttribute a = do
-  skipNonToken $ string a
-  skipNonToken $ string ":"
+  _ <- skipNonToken $ string a
+  _ <- skipNonToken $ string ":"
   skipNonToken $ return ()
 
 
@@ -241,7 +242,7 @@ parseTool = do
 
 parseAliasName :: Parser AliasName
 parseAliasName = do
-  char '@'
+  _ <- char '@'
   parseIdentifier
 
 
@@ -280,7 +281,7 @@ parseAccName = do
 
 parseParityName :: Parser AccName
 parseParityName = do
-  string "parity"
+  _ <- string "parity"
   skipSpace
   min_max <- (string "min" >> return Min) <|>
              (string "max" >> return Max)
@@ -294,8 +295,8 @@ parseParityName = do
 
 parseGRabinName :: Parser AccName
 parseGRabinName = do
-  string "generalized-Rabin"
-  skipSpace
+  _ <- string "generalized-Rabin"
+  _ <- skipSpace
   n <- decimal
   nums <- count n decimal
   return $ GRabin n nums
@@ -459,9 +460,9 @@ bodyItemToHoa b = ("State: " ++
 
 embracedBy :: Parser a -> T.Text -> T.Text -> Parser a
 embracedBy p s1 s2 = do
-  skipNonToken $ string s1
+  _ <- skipNonToken $ string s1
   r <- p
-  skipNonToken $ string s2
+  _ <- skipNonToken $ string s2
   return r
 
 
@@ -480,17 +481,16 @@ curls p = embracedBy p "{" "}"
 skipNonToken :: Parser a -> Parser a
 skipNonToken p =  do
   skipSpace
-  many $ do
-    string "/*" *> manyTill anyChar (string "*/")
+  _ <- many $ do
+    _ <- string "/*" *> manyTill anyChar (string "*/")
     skipSpace
   p
 
-
 parseDoubleQuotedString :: Parser T.Text
 parseDoubleQuotedString = do
-  char '"'
+  _ <- char '"'
   x <- many (notChar '\"' <|> (char '\\' >> char '\"'))
-  char '"'
+  _ <- char '"'
   return $ T.pack x
 
 
